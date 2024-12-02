@@ -3,7 +3,7 @@
 ## Exit Status Codes
 ## Code    Error
 1.
-    - ErrNoArgsPassed
+    - ErrNoArgsPassed, ErrMaxAntNumExceeded
 
 2.
 
