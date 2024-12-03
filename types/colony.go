@@ -12,6 +12,8 @@ const (
 // Colony is a model of the ant farm also known as colony
 type Colony struct {
 	StartRoom    string
+	StartFound	 bool
+	EndFound	 bool
 	EndRoom      string
 	NumberOfAnts uint32 // number of ants cannot be negative
 }
@@ -20,7 +22,12 @@ type Colony struct {
 // and exits with status code 1
 func CheckNumAnts(c Colony) error {
 	if c.NumberOfAnts >= MaxAntsPerColony {
-		return fmt.Errorf(xerrors.ErrMaxAntNumExceeded.Error(), MaxAntsPerColony)
+		return fmt.Errorf(xerrors.ErrMaxAntNumExceeded.Error())
+	}
+	if c.NumberOfAnts == 0 {
+		return fmt.Errorf(xerrors.ErrZeroAnts.Error())
 	}
 	return nil
 }
+
+func
