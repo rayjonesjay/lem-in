@@ -33,6 +33,18 @@ Here are the contents and structure of the file we are reading from:
 - **Errors**:
  - For invalid input return specific messages:
 	- example `ERROR: invalid data format, no start room found`.
+
+- EXAMPLE OF INPUT
+```
+3 -> this denotes that there are 3 ants
+##start  start command and the line after is the starting node or room
+A 1 2 -> starting at room A, 1 and 2 ARE ONLY NEEDED IF YOU WANNA VISUALIZE
+##end -> end commad and the line after is the end node or room
+B 3 4 -> all ants must reach node B the destination, 3 and 4 are not needed, they are x and y cordinates, will be used for visualization
+C 2 3 -> C is the node in between.
+A-C -> this is the link. this means A is linked to C
+C-B -> this means C is linked to B
+```
 	
 
 2. GRAPH CONSTRUCTION
