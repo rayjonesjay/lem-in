@@ -1,25 +1,33 @@
 package types
 
 import (
+	"errors"
 	"lem-in/xerrors"
+	"math"
 	"testing"
 )
 
 func TestCheckNumAnts(t *testing.T) {
 	type testData struct {
-		input int
+		name  string
+		input uint32
 		want  error
 	}
 	tests := []testData{
-		{0, xerrors.ErrZeroAnts},
-		{1, nil},
-		{1_000, nil},
-		{1_000_000, xerrors.ErrMaxAntNumExceeded},
+		{"testA", 0, xerrors.ErrZeroAnts},
+		{"testB", 1, nil},
+		{"testC", 1_000, xerrors.ErrMaxAntNumExceeded},
+		{"testD", 1_000_000, xerrors.ErrMaxAntNumExceeded},
+		{"testE", math.MaxUint32, xerrors.ErrMaxAntNumExceeded},
 	}
 
 	for _, test := range tests {
-		t.Run("", func(t *testing.T) {
-			got := CheckNumAnts(c.)
+		t.Run(test.name, func(t *testing.T) {
+			C := Colony{NumberOfAnts: test.input}
+			got := CheckNumAnts(C)
+			if errors.Is(got, test.want) && got != nil {
+				t.Errorf("\nGOT %v\nWANT %v", got, test.want)
+			}
 		})
 	}
 }
