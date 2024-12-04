@@ -8,10 +8,16 @@ type Room struct {
 type ColonyGraph struct {
 	Connections Connections
 	Start       string
-	End         string
 }
 
 type Connections map[Room][]Room
+
+func NewColony(start string) *ColonyGraph {
+	return &ColonyGraph{
+		Connections: make(Connections),
+		Start:       start,
+	}
+}
 
 func (con *ColonyGraph) AddConnection(room1, room2 Room) {
 	con.Connections[room1] = append(con.Connections[room1], room2)
