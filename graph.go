@@ -1,4 +1,4 @@
-package Colony
+package colony
 
 type Room struct {
 	RoomNo string
