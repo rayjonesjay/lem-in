@@ -30,6 +30,19 @@ var (
 
 	// ErrZeroAnts returned when the number of ants is 0
 	ErrZeroAnts = errors.New("ZeroAnts: no ants in the colony")
+
+
+	ErrNoDataFound = errors.New("NoDataFound: file contains no data")
+
+
+	ErrInvalidNumberOfAnts = errors.New("InvalidNumberOfAnts: number of ants invalid")
+
+	ErrInvalidRoomCoordinates = errors.New("InvalidRoomCoordinates: wrong cordinates detected")
+
+	ErrInvalidRoomFormat = errors.New("InvalidRoomFormat: wrong room format")
+
+
+	ErrDuplicateRoom = errors.New("DuplicatRoom: %v and %v are duplicate rooms")
 )
 
 func ErrorWriter(err error, exitCode int, shouldExit bool) {
