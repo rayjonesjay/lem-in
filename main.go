@@ -35,5 +35,5 @@ func main() {
 		log.Fatalf("%v\n", fmt.Errorf(err.Error(), file))
 	}
 
-	fmt.Printf("%+#v\n", Colony)
+	fmt.Printf("%+v\n", Colony)
 }
