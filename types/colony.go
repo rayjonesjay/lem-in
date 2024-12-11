@@ -2,8 +2,10 @@ package types
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"lem-in/xerrors"
 )
@@ -12,13 +14,14 @@ const (
 	MaxAntsPerColony = 1_000
 )
 
-// a room looks like A 1 2 where A is the name, and 1 and 2 is the x and y cordinate respectively
-// although this cordinates will be used in visualization
+// Room a looks like A 1 2 where A is the name, and 1 and 2 is the x and y coordinate respectively
+// although this coordinates will be used in visualization
 type Room struct {
 	Name       string
-	X, Y       int      // room cordinates
+	X, Y       int      // room coordinates
 	Neighbours []string // each room has neighbours
 	Occupied   bool     // indicator to show room occupation status
+	mu         sync.Mutex
 }
 
 // Colony is a model of the ant farm also known as colony
@@ -94,6 +97,26 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 	for ; i < len(fileContents); i++ {
 		line := strings.TrimSpace(fileContents[i])
 
+		if isLink(line) {
+			// split at the occurrence of -
+			arr := Split(line, "-")
+			//fmt.Println(arr)
+			if len(arr) != 2 {
+				return nil, fmt.Errorf(xerrors.ErrInvalidLink.Error(), line)
+			}
+
+			from, to := arr[0], arr[1]
+			//fmt.Println(from, to)
+			// create a room
+			room := colony.Rooms[from]
+			// add to as its neighbour
+			room.Neighbours = append(room.Neighbours, to)
+
+			room = colony.Rooms[to]
+			room.Neighbours = append(room.Neighbours, from)
+			continue
+		}
+
 		if line == "##end" && !endRoomSet {
 			colony.EndFound = true
 			i++
@@ -118,6 +141,7 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 			}
 			colony.Rooms[name] = &Room{Name: name, X: x, Y: y}
 		}
+
 	}
 
 	// Validate if start and end rooms were found
@@ -129,4 +153,17 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 	}
 
 	return colony, nil
+}
+
+// isLink looks for pattern X in s where pattern X is M-N where M and N are both numbers or letters
+// and returns true if a match exist
+func isLink(s string) bool {
+	pattern := `\d+-\d+`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(s)
+}
+
+func Split(s string, sep string) []string {
+	arr := strings.Split(s, sep)
+	return arr
 }

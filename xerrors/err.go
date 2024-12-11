@@ -31,9 +31,7 @@ var (
 	// ErrZeroAnts returned when the number of ants is 0
 	ErrZeroAnts = errors.New("ZeroAnts: no ants in the colony")
 
-
 	ErrNoDataFound = errors.New("NoDataFound: file contains no data")
-
 
 	ErrInvalidNumberOfAnts = errors.New("InvalidNumberOfAnts: number of ants invalid")
 
@@ -41,6 +39,7 @@ var (
 
 	ErrInvalidRoomFormat = errors.New("InvalidRoomFormat: wrong room format")
 
+	ErrInvalidLink = errors.New("InvalidLinkFormat: wrong link format: %s")
 
 	ErrDuplicateRoom = errors.New("DuplicatRoom: %v and %v are duplicate rooms")
 )

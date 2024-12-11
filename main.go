@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -28,12 +29,23 @@ func main() {
 		return
 	}
 
-	fmt.Printf("%q\n", contents)
+	//fmt.Printf("%q\n", contents)
+	// contains the struct in json format
+	logFile := "logger.json"
+	l := log.Logger{}
+	fd, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
+	defer fd.Close()
+	l.SetOutput(fd)
 
 	Colony, err := types.ParseFileContentsToColony(contents)
 	if err != nil {
 		log.Fatalf("%v\n", fmt.Errorf(err.Error(), file))
 	}
 
-	fmt.Printf("%+v\n", Colony)
+	c, _ := json.MarshalIndent(Colony, "", "\t")
+	l.Println(string(c))
+	fmt.Printf("look for a file named %s\n", logFile)
 }
