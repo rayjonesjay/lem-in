@@ -12,40 +12,52 @@ import (
 )
 
 func main() {
-	// read the arguments from the command line and ignore the name of the program at index 0
+	// Read the arguments from the command line
 	arguments := os.Args[1:]
-
-	len := len(arguments)
-
-	if len != 1 {
+	if len(arguments) != 1 {
 		fmt.Println(xerr.ErrNoArgsPassed)
 		os.Exit(1)
 	}
 	file := arguments[0]
 
+	// Read and validate file contents
+	log.Println("Reading and validating file contents...")
 	contents, err := parse.ReadValidateFileContents(file)
 	if err != nil {
-		log.Fatalf("%v\n", err)
+		log.Fatalf("Error reading file: %v\n", err)
 		return
 	}
 
-	//fmt.Printf("%q\n", contents)
-	// contains the struct in json format
-	logFile := "logger.json"
-	l := log.Logger{}
-	fd, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-	}
-	defer fd.Close()
-	l.SetOutput(fd)
-
+	// Parse file contents into a Colony structure
+	log.Println("Parsing file contents into colony...")
 	Colony, err := types.ParseFileContentsToColony(contents)
 	if err != nil {
-		log.Fatalf("%v\n", fmt.Errorf(err.Error(), file))
+		log.Fatalf("Error parsing file contents: %v\n", err)
+		return
 	}
 
+	// Validate the Colony structure
+	log.Println("Validating colony...")
+	err = types.ValidateColony(Colony)
+	if err != nil {
+		log.Printf("Colony validation failed: %v\n", err)
+		xerr.Logger(Colony, "err.txt")
+		os.Exit(1)
+	}
+
+	// Log the Colony structure for debugging
+	log.Println("Logging colony structure...")
 	c, _ := json.MarshalIndent(Colony, "", "\t")
-	l.Println(string(c))
-	fmt.Printf("look for a file named %s\n", logFile)
+	xerr.Logger(c, "logger.json")
+	fmt.Println("Colony structure logged to logger.json")
+
+	// Start moving ants
+	log.Println("Starting to move ants...")
+	err = Colony.MoveAnts()
+	if err != nil {
+		log.Fatalf("Error during ant movement: %v\n", err)
+		os.Exit(1)
+	}
+
+	log.Println("Ant movement completed successfully.")
 }

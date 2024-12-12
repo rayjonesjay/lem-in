@@ -12,6 +12,9 @@ import "sync"
 4.
 */
 type Ant struct {
-	id int
-	mu sync.Mutex
+	Id          uint64
+	mu          sync.Mutex
+	Current     string
+	Destination string
+	Path        []string
 }

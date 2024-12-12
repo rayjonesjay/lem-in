@@ -1,11 +1,14 @@
-// package xerrors contains error types and error handling functions for efficient error handling
 package xerrors
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 )
+
+var L = log.Logger{}
 
 // all error variables must have the prefix Err
 // ErrStartNotFound and ErrEndNotFound will have exit status of 3
@@ -35,13 +38,13 @@ var (
 
 	ErrInvalidNumberOfAnts = errors.New("InvalidNumberOfAnts: number of ants invalid")
 
-	ErrInvalidRoomCoordinates = errors.New("InvalidRoomCoordinates: wrong cordinates detected")
+	ErrInvalidRoomCoordinates = errors.New("InvalidRoomCoordinates: wrong coordinates detected")
 
 	ErrInvalidRoomFormat = errors.New("InvalidRoomFormat: wrong room format")
 
 	ErrInvalidLink = errors.New("InvalidLinkFormat: wrong link format: %s")
 
-	ErrDuplicateRoom = errors.New("DuplicatRoom: %v and %v are duplicate rooms")
+	ErrDuplicateRoom = errors.New("DuplicatRoom: %v is duplicate ")
 )
 
 func ErrorWriter(err error, exitCode int, shouldExit bool) {
@@ -49,4 +52,16 @@ func ErrorWriter(err error, exitCode int, shouldExit bool) {
 	if shouldExit {
 		os.Exit(exitCode)
 	}
+}
+
+func Logger(T interface{}, filename string) {
+	c, _ := json.MarshalIndent(T, "", "\t")
+	logFile := filename
+	fd, err := os.OpenFile(logFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
+	defer fd.Close()
+	L.SetOutput(fd)
+	L.Println(string(c))
 }
