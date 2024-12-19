@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -87,59 +86,65 @@ func contains(path []string, room string) bool {
 }
 
 func (c *Colony) MoveAnts() error {
-	// the outer loop represents the undefined number of turns the ants will take
-	// inside the outer loop another loop which checks if an ant can move to the next room
-	// depending on its current position and its path
-	// an ant can move if the next room in its path is empty
-	// lock the current room and destination to prevent race
 	fmt.Println("******************")
 	xerrors.Logger(c, "json.txt")
-	for {
-		numberOfAntsWhoReachedTheEnd := 0
-		for i := range c.Ants {
+	numberOfAntsWhoReachedTheEnd := 0
+	iterationsWithoutProgress := 0 // Counter to track progress
 
+	for numberOfAntsWhoReachedTheEnd < len(c.Ants) {
+		// Decision Phase: Plan all moves
+		movesThisTurn := 0
+		for i := range c.Ants {
 			ant := &c.Ants[i]
 
 			if ant.Current == c.EndRoom.Name {
-				numberOfAntsWhoReachedTheEnd += 1
 				continue
 			}
 
 			if len(ant.Path) < 2 {
-				return fmt.Errorf("invalid path for %d", ant.Id)
+				return fmt.Errorf("invalid path for ant %d", ant.Id)
 			}
 
-			xerrors.Logger(c, "ant.txt")
-			// if the current ant position is not equal to the end room
-			if ant.Current != c.EndRoom.Name {
+			nextRoom := ant.Path[1] // get next room in the path
+			nextRoomObject := c.Rooms[nextRoom]
 
-				if ant.Path == nil || len(ant.Path) == 0 {
-					return fmt.Errorf(errors.New("ant %d does not have a defined path to move").Error(), ant.Id)
-				}
+			currentRoom := c.Rooms[ant.Current]
+			currentRoom.mu.Lock()
+			nextRoomObject.mu.Lock()
 
-				nextRoom := ant.Path[1] // get next room in the path
-				currentRoom := c.Rooms[ant.Current]
-
-				currentRoom.mu.Lock()
-				nextRoomObject := c.Rooms[nextRoom]
-				nextRoomObject.mu.Lock()
-
-				if !nextRoomObject.Occupied {
-					// move the ant
-					ant.Current = nextRoom
-					nextRoomObject.Occupied = true
-					currentRoom.Occupied = false
-					ant.Path = ant.Path[1:]
-					fmt.Printf("L%d-%s ", ant.Id, nextRoom)
-				}
-				currentRoom.mu.Unlock()
-				nextRoomObject.mu.Unlock()
+			// Execution Phase: Move the ant if possible
+			if !nextRoomObject.Occupied {
+				ant.Current = nextRoom
+				nextRoomObject.Occupied = true
+				currentRoom.Occupied = false
+				ant.Path = ant.Path[1:] // Update path after the move
+				fmt.Printf("L%d-%s ", ant.Id, nextRoom)
+				fmt.Printf("Ant %d's path after move: %v\n", ant.Id, ant.Path)
+				movesThisTurn++ // Increment move count
 			}
-			if numberOfAntsWhoReachedTheEnd == len(c.Ants) {
-				break
+
+			currentRoom.mu.Unlock()
+			nextRoomObject.mu.Unlock()
+
+			if ant.Current == c.EndRoom.Name {
+				numberOfAntsWhoReachedTheEnd++
 			}
 		}
+
+		if movesThisTurn == 0 {
+			iterationsWithoutProgress++
+		} else {
+			iterationsWithoutProgress = 0
+		}
+
+		// If no moves are made in a certain number of turns, break out of the loop to prevent infinite loops
+		if iterationsWithoutProgress > 100 { // Arbitrary large number of iterations without progress
+			return fmt.Errorf("unable to move ants after many iterations")
+		}
+
+		fmt.Println() // Print the state after each turn
 	}
+
 	return nil
 }
 
