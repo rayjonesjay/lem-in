@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -266,19 +267,57 @@ func CheckNumAnts(c *Colony) error {
 }
 
 // InitializeAnts initializes all ants, with their id,start room name,paths
+// InitializeAnts initializes all ants, assigning paths using the refined formula
 func InitializeAnts(c *Colony) *Colony {
-	// all ant id start at 1
+	// Find all possible paths between start and end rooms
+	allPaths := c.FindAllPaths(c.StartRoom.Name, c.EndRoom.Name)
+
+	// Sort the paths by their length (ascending order)
+	sort.Slice(allPaths, func(i, j int) bool {
+		return len(allPaths[i]) < len(allPaths[j])
+	})
+
+	// Map to track the number of ants assigned to each path
+	pathAntCount := make(map[int]int)
+
+	// Assign ants to paths
 	for i := uint64(1); i <= c.NumberOfAnts; i++ {
 		ant := Ant{
 			Id:          i,
 			Current:     c.StartRoom.Name,
 			Destination: c.EndRoom.Name,
-			Path:        nil, // this will be calculated
+			Path:        nil,
 		}
-		ant.Path = c.PathFinder(c.StartRoom.Name, c.EndRoom.Name)
+
+		// Assign path based on the refined formula
+		assigned := false
+		for j, path := range allPaths {
+			nextIndex := (j + 1) % len(allPaths)
+			nextPath := allPaths[nextIndex]
+
+			// Check the refined condition
+			if len(path)+pathAntCount[j] <= len(nextPath)+pathAntCount[nextIndex] {
+				ant.Path = path
+				pathAntCount[j]++
+				assigned = true
+				break
+			}
+		}
+
+		// Fallback: If no path satisfied the condition, assign to the first path cyclically
+		if !assigned {
+			cyclicIndex := int(i-1) % len(allPaths)
+			ant.Path = allPaths[cyclicIndex]
+			pathAntCount[cyclicIndex]++
+		}
+
+		// Log the ant's information for debugging
 		xerrors.Logger(ant, "ant.err")
+
+		// Add the ant to the colony
 		c.Ants = append(c.Ants, ant)
 	}
+
 	return c
 }
 
