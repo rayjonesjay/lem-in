@@ -36,33 +36,53 @@ type Colony struct {
 	Ants         []Ant            // all ants in the colony
 }
 
-func (c *Colony) PathFinder(start, end string) []string {
+func (c *Colony) FindAllPaths(start, end string) [][]string {
+	// Check if the start or end room doesn't exist
 	if c.Rooms[start] == nil || c.Rooms[end] == nil {
 		return nil
 	}
 
-	seen := make(map[string]bool)
-	queue := [][]string{{start}}
+	// Initialize a slice to store all paths
+	var allPaths [][]string
 
-	for len(queue) > 0 {
-		path := queue[0]
-		queue = queue[1:]
-		room := path[len(path)-1]
-		if room == end {
-			return path
+	// Helper function to perform DFS
+	var dfs func(path []string, current string)
+	dfs = func(path []string, current string) {
+		// Add the current room to the path
+		path = append(path, current)
+
+		// If the current room is the destination, save the path
+		if current == end {
+			// Make a copy of the path and add it to allPaths
+			pathCopy := make([]string, len(path))
+			copy(pathCopy, path)
+			allPaths = append(allPaths, pathCopy)
+			return
 		}
 
-		if !seen[room] {
-			seen[room] = true
-			for _, neighbour := range c.Rooms[room].Neighbours {
-				newPath := append([]string{}, path...)
-				newPath = append(newPath, neighbour)
-				queue = append(queue, newPath)
+		// Explore each neighbor
+		for _, neighbor := range c.Rooms[current].Neighbours {
+			// Avoid revisiting rooms already in the current path
+			if !contains(path, neighbor) {
+				dfs(path, neighbor)
 			}
 		}
 	}
 
-	return nil
+	// Start the DFS from the starting room
+	dfs([]string{}, start)
+
+	return allPaths
+}
+
+// Helper function to check if a room is already in the path
+func contains(path []string, room string) bool {
+	for _, r := range path {
+		if r == room {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Colony) MoveAnts() error {
