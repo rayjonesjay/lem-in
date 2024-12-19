@@ -27,7 +27,6 @@ func main() {
 		log.Fatalf("Error reading file: %v\n", err)
 		return
 	}
-
 	// Parse file contents into a Colony structure
 	log.Println("Parsing file contents into colony...")
 	Colony, err := types.ParseFileContentsToColony(contents)
@@ -35,6 +34,8 @@ func main() {
 		log.Fatalf("Error parsing file contents: %v\n", err)
 		return
 	}
+
+	
 
 	// Validate the Colony structure
 	log.Println("Validating colony...")
