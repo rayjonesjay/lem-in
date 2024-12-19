@@ -266,7 +266,6 @@ func CheckNumAnts(c *Colony) error {
 	return nil
 }
 
-// InitializeAnts initializes all ants, with their id,start room name,paths
 // InitializeAnts initializes all ants, assigning paths using the refined formula
 func InitializeAnts(c *Colony) *Colony {
 	// Find all possible paths between start and end rooms
