@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 
 	"lem-in/xerrors"
 )
@@ -15,17 +14,16 @@ const (
 	MaxAntsPerColony = 1_000
 )
 
-// Room a looks like A 1 2 where A is the name, and 1 and 2 is the x and y coordinate respectively
-// although this coordinates will be used in visualization
+// Room represents a location in the colony with coordinates and neighbors
 type Room struct {
 	Name       string
 	X, Y       int      // room coordinates
 	Neighbours []string // each room has neighbours
 	Occupied   bool     // indicator to show room occupation status
-	mu         sync.Mutex
+	// mu         sync.Mutex
 }
 
-// Colony is a model of the ant farm also known as colony
+// Colony represents the ant farm structure and its components
 type Colony struct {
 	StartRoom    Room             // the initial position where all ants are supposed to start from
 	StartFound   bool             // true if start room was found in the input file
@@ -36,46 +34,37 @@ type Colony struct {
 	Ants         []Ant            // all ants in the colony
 }
 
+// FindAllPaths finds all possible paths from start to end room
 func (c *Colony) FindAllPaths(start, end string) [][]string {
-	// Check if the start or end room doesn't exist
 	if c.Rooms[start] == nil || c.Rooms[end] == nil {
 		return nil
 	}
 
-	// Initialize a slice to store all paths
 	var allPaths [][]string
 
-	// Helper function to perform DFS
 	var dfs func(path []string, current string)
 	dfs = func(path []string, current string) {
-		// Add the current room to the path
 		path = append(path, current)
 
-		// If the current room is the destination, save the path
 		if current == end {
-			// Make a copy of the path and add it to allPaths
 			pathCopy := make([]string, len(path))
 			copy(pathCopy, path)
 			allPaths = append(allPaths, pathCopy)
 			return
 		}
 
-		// Explore each neighbor
 		for _, neighbor := range c.Rooms[current].Neighbours {
-			// Avoid revisiting rooms already in the current path
 			if !contains(path, neighbor) {
 				dfs(path, neighbor)
 			}
 		}
 	}
 
-	// Start the DFS from the starting room
 	dfs([]string{}, start)
-
 	return allPaths
 }
 
-// Helper function to check if a room is already in the path
+// Helper function to check if a room is in a path
 func contains(path []string, room string) bool {
 	for _, r := range path {
 		if r == room {
@@ -85,15 +74,19 @@ func contains(path []string, room string) bool {
 	return false
 }
 
+// MoveAnts coordinates ant movement through the colony
 func (c *Colony) MoveAnts() error {
-	fmt.Println("******************")
-	xerrors.Logger(c, "json.txt")
-	numberOfAntsWhoReachedTheEnd := 0
-	iterationsWithoutProgress := 0 // Counter to track progress
+	numberOfAntsAtEnd := 0
+	occupied := make(map[string]bool)
 
-	for numberOfAntsWhoReachedTheEnd < len(c.Ants) {
-		// Decision Phase: Plan all moves
-		movesThisTurn := 0
+	// Mark start room as occupied initially
+	occupied[c.StartRoom.Name] = true
+
+	for numberOfAntsAtEnd < len(c.Ants) {
+		moves := make([]string, 0)
+		newOccupied := make(map[string]bool)
+
+		// Process ants in order
 		for i := range c.Ants {
 			ant := &c.Ants[i]
 
@@ -102,52 +95,41 @@ func (c *Colony) MoveAnts() error {
 			}
 
 			if len(ant.Path) < 2 {
-				return fmt.Errorf("invalid path for ant %d", ant.Id)
+				continue
 			}
 
-			nextRoom := ant.Path[1] // get next room in the path
-			nextRoomObject := c.Rooms[nextRoom]
+			nextRoom := ant.Path[1]
 
-			currentRoom := c.Rooms[ant.Current]
-			currentRoom.mu.Lock()
-			nextRoomObject.mu.Lock()
+			// Check if next room is available
+			if !occupied[nextRoom] && !newOccupied[nextRoom] {
+				moves = append(moves, fmt.Sprintf("L%d-%s", ant.Id, nextRoom))
+				newOccupied[nextRoom] = true
 
-			// Execution Phase: Move the ant if possible
-			if !nextRoomObject.Occupied {
+				// Update ant's position
 				ant.Current = nextRoom
-				nextRoomObject.Occupied = true
-				currentRoom.Occupied = false
-				ant.Path = ant.Path[1:] // Update path after the move
-				fmt.Printf("L%d-%s ", ant.Id, nextRoom)
-				fmt.Printf("Ant %d's path after move: %v\n", ant.Id, ant.Path)
-				movesThisTurn++ // Increment move count
-			}
+				ant.Path = ant.Path[1:]
 
-			currentRoom.mu.Unlock()
-			nextRoomObject.mu.Unlock()
-
-			if ant.Current == c.EndRoom.Name {
-				numberOfAntsWhoReachedTheEnd++
+				if ant.Current == c.EndRoom.Name {
+					numberOfAntsAtEnd++
+				}
 			}
 		}
 
-		if movesThisTurn == 0 {
-			iterationsWithoutProgress++
-		} else {
-			iterationsWithoutProgress = 0
-		}
+		// Update occupied rooms for next turn
+		occupied = newOccupied
 
-		// If no moves are made in a certain number of turns, break out of the loop to prevent infinite loops
-		if iterationsWithoutProgress > 100 { // Arbitrary large number of iterations without progress
-			return fmt.Errorf("unable to move ants after many iterations")
+		// Print moves for this turn
+		if len(moves) > 0 {
+			fmt.Println(strings.Join(moves, " "))
+		} else if numberOfAntsAtEnd < len(c.Ants) {
+			return fmt.Errorf("deadlock detected: no moves possible but not all ants at end")
 		}
-
-		fmt.Println() // Print the state after each turn
 	}
 
 	return nil
 }
 
+// ParseFileContentsToColony parses input file contents into a Colony structure
 func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 	colony := &Colony{
 		Rooms: make(map[string]*Room),
@@ -159,25 +141,6 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 		return nil, xerrors.ErrInvalidNumberOfAnts
 	}
 	colony.NumberOfAnts = uint64(numberOfAnts)
-
-	// Helper function to parse room name and coordinates
-	parseRoom := func(s string) (name string, x, y int, err error) {
-		parts := strings.Fields(strings.TrimSpace(s))
-		if len(parts) != 3 {
-			return "", 0, 0, xerrors.ErrInvalidRoomFormat
-		}
-
-		name = parts[0]
-		x, err = strconv.Atoi(parts[1])
-		if err != nil {
-			return "", 0, 0, xerrors.ErrInvalidRoomCoordinates
-		}
-		y, err = strconv.Atoi(parts[2])
-		if err != nil {
-			return "", 0, 0, xerrors.ErrInvalidRoomCoordinates
-		}
-		return name, x, y, nil
-	}
 
 	// Check for ##start and ##end directives
 	i := 1
@@ -200,22 +163,16 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 		line := strings.TrimSpace(fileContents[i])
 
 		if isLink(line) {
-			// split at the occurrence of -
 			arr := Split(line, "-")
-			//fmt.Println(arr)
 			if len(arr) != 2 {
 				return nil, fmt.Errorf(xerrors.ErrInvalidLink.Error(), line)
 			}
 
 			from, to := arr[0], arr[1]
-			//fmt.Println(from, to)
-			// create a room
 			room := colony.Rooms[from]
-			// add to as its neighbour
 			room.Neighbours = append(room.Neighbours, to)
 
 			room = colony.Rooms[to]
-			// for undirected graphs
 			room.Neighbours = append(room.Neighbours, from)
 			continue
 		}
@@ -233,7 +190,6 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 			continue
 		}
 
-		// Parse regular rooms
 		if !strings.HasPrefix(line, "#") && line != "" {
 			name, x, y, err := parseRoom(line)
 			if err != nil {
@@ -244,10 +200,8 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 			}
 			colony.Rooms[name] = &Room{Name: name, X: x, Y: y}
 		}
-
 	}
 
-	// Validate if start and end rooms were found
 	if !colony.StartFound || colony.StartRoom.Name == "" {
 		return nil, xerrors.ErrStartNotFound
 	}
@@ -255,12 +209,64 @@ func ParseFileContentsToColony(fileContents []string) (*Colony, error) {
 		return nil, xerrors.ErrEndNotFound
 	}
 
-	C := InitializeAnts(colony)
-	return C, nil
+	return InitializeAnts(colony), nil
 }
 
-// CheckNumAnts checks the number of ants per colony if they have exceeded MaxAntsPerColony
-// and exits with status code 1
+// Helper function to parse room information
+func parseRoom(s string) (name string, x, y int, err error) {
+	parts := strings.Fields(strings.TrimSpace(s))
+	if len(parts) != 3 {
+		return "", 0, 0, xerrors.ErrInvalidRoomFormat
+	}
+
+	name = parts[0]
+	x, err = strconv.Atoi(parts[1])
+	if err != nil {
+		return "", 0, 0, xerrors.ErrInvalidRoomCoordinates
+	}
+	y, err = strconv.Atoi(parts[2])
+	if err != nil {
+		return "", 0, 0, xerrors.ErrInvalidRoomCoordinates
+	}
+	return name, x, y, nil
+}
+
+// InitializeAnts initializes all ants with optimized path distribution
+func InitializeAnts(c *Colony) *Colony {
+	allPaths := c.FindAllPaths(c.StartRoom.Name, c.EndRoom.Name)
+
+	// Sort paths by length
+	sort.Slice(allPaths, func(i, j int) bool {
+		return len(allPaths[i]) < len(allPaths[j])
+	})
+
+	// Get top N shortest paths where N is number of ants
+	maxPaths := int(c.NumberOfAnts)
+	if len(allPaths) > maxPaths {
+		allPaths = allPaths[:maxPaths]
+	}
+
+	// Initialize ants with distributed paths
+	c.Ants = make([]Ant, c.NumberOfAnts)
+
+	// Assign paths round-robin style to ensure even distribution
+	for i := uint64(0); i < c.NumberOfAnts; i++ {
+		pathIndex := int(i) % len(allPaths)
+		path := make([]string, len(allPaths[pathIndex]))
+		copy(path, allPaths[pathIndex])
+
+		c.Ants[i] = Ant{
+			Id:          i + 1,
+			Current:     c.StartRoom.Name,
+			Destination: c.EndRoom.Name,
+			Path:        path,
+		}
+	}
+
+	return c
+}
+
+// CheckNumAnts validates the number of ants in the colony
 func CheckNumAnts(c *Colony) error {
 	if c.NumberOfAnts >= MaxAntsPerColony {
 		return xerrors.ErrMaxAntNumExceeded
@@ -271,80 +277,29 @@ func CheckNumAnts(c *Colony) error {
 	return nil
 }
 
-// InitializeAnts initializes all ants, assigning paths using the refined formula
-func InitializeAnts(c *Colony) *Colony {
-	// Find all possible paths between start and end rooms
-	allPaths := c.FindAllPaths(c.StartRoom.Name, c.EndRoom.Name)
-
-	// Sort the paths by their length (ascending order)
-	sort.Slice(allPaths, func(i, j int) bool {
-		return len(allPaths[i]) < len(allPaths[j])
-	})
-
-	// Map to track the number of ants assigned to each path
-	pathAntCount := make(map[int]int)
-
-	// Assign ants to paths
-	for i := uint64(1); i <= c.NumberOfAnts; i++ {
-		ant := Ant{
-			Id:          i,
-			Current:     c.StartRoom.Name,
-			Destination: c.EndRoom.Name,
-			Path:        nil,
-		}
-
-		// Assign path based on the refined formula
-		assigned := false
-		for j, path := range allPaths {
-			nextIndex := (j + 1) % len(allPaths)
-			nextPath := allPaths[nextIndex]
-
-			// Check the refined condition
-			if len(path)+pathAntCount[j] <= len(nextPath)+pathAntCount[nextIndex] {
-				ant.Path = path
-				pathAntCount[j]++
-				assigned = true
-				break
-			}
-		}
-
-		// Fallback: If no path satisfied the condition, assign to the first path cyclically
-		if !assigned {
-			cyclicIndex := int(i-1) % len(allPaths)
-			ant.Path = allPaths[cyclicIndex]
-			pathAntCount[cyclicIndex]++
-		}
-
-		// Log the ant's information for debugging
-		xerrors.Logger(ant, "ant.err")
-
-		// Add the ant to the colony
-		c.Ants = append(c.Ants, ant)
-	}
-
-	return c
+// ValidateColony validates the colony structure
+func ValidateColony(c *Colony) error {
+	return CheckNumAnts(c)
 }
 
-// isLink looks for pattern X in s where pattern X is M-N where M and N are both numbers or letters
-// and returns true if a match exist
+// isLink checks if a string represents a valid link between rooms
 func isLink(s string) bool {
-	pattern := `\d+-\d+`
+	pattern := `[0-9A-Za-z]+-[0-9A-Za-z]+`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(s)
 }
 
+// Split splits a string by a separator
 func Split(s string, sep string) []string {
-	arr := strings.Split(s, sep)
-	return arr
+	return strings.Split(s, sep)
 }
 
-// ValidateColony checks if the fields in the colony struct have the correct fields
-// and that the fields obey the rules of the game
-func ValidateColony(c *Colony) error {
-	// check if number of ants exceed 1000
-	err := CheckNumAnts(c)
-	if err != nil {
-		return err
+// PrintState prints the current state of all ants (for debugging)
+func (c *Colony) PrintState() {
+	fmt.Println("\nCurrent State:")
+	for _, ant := range c.Ants {
+		fmt.Printf("Ant %d: Current=%s, Path=%v\n",
+			ant.Id, ant.Current, ant.Path)
 	}
-	return nil
+	fmt.Println()
 }
