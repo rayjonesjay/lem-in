@@ -8,7 +8,7 @@ package models
 type Room struct {
 	Name string
 	Coordinate Coordinate
-	Neighbours map[string]*Room
+	Neighbours []*Room // a slice of rooms/neighbours
 }
 
 // Cartesian coordinates, this type represent the X and Y coordinates of a room
