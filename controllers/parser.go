@@ -17,6 +17,76 @@ func NewParser() *Parser {
 	}
 }
 
+func (p *Parser) ParseFile(filename string) (*models.Farm, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	// Parse number of ants
+	if !scanner.Scan() {
+		return nil, fmt.Errorf("empty input file")
+	}
+
+	antCount, err := strconv.Atoi(scanner.Text())
+	if err != nil || antCount <= 0 {
+		return nil, fmt.Errorf("invalid ant count: %s", scanner.Text())
+	}
+
+	// Parse rooms and tunnels
+	var startRoom, endRoom *models.Room
+	expectingStart := false
+	expectingEnd := false
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		switch {
+		case line == "##start":
+			expectingStart = true
+		case line == "##end":
+			expectingEnd = true
+		case strings.HasPrefix(line, "#"):
+			continue
+		case strings.Contains(line, "-"):
+			err := p.parseTunnel(line)
+			if err != nil {
+				return nil, err
+			}
+		default:
+			room, err := p.parseRoom(line)
+			if err != nil {
+				return nil, err
+			}
+
+			if expectingStart {
+				startRoom = room
+				room.SetAsStart()
+				expectingStart = false
+			} else if expectingEnd {
+				endRoom = room
+				room.SetAsEnd()
+				expectingEnd = false
+			}
+		}
+	}
+
+	if startRoom == nil || endRoom == nil {
+		return nil, fmt.Errorf("missing start or end room")
+	}
+
+	return &models.Farm{
+		AntCount:  antCount,
+		Rooms:     p.rooms,
+		Tunnels:   p.tunnels,
+		StartRoom: startRoom,
+		EndRoom:   endRoom,
+	}, nil
+}
+
 func (p *Parser) parseRoom(line string) (*models.Room, error) {
 	parts := strings.Fields(line)
 	if len(parts) != 3 {
