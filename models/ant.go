@@ -21,3 +21,11 @@ func (a *Ant) SetPath(path []*Room) {
 	a.Path = path
 	a.PathIdx = 0
 }
+
+// GetNextRoom returns the next room in the path without moving the ant
+func (a *Ant) GetNextRoom() *Room {
+	if a.PathIdx >= len(a.Path)-1 {
+		return nil
+	}
+	return a.Path[a.PathIdx+1]
+}
