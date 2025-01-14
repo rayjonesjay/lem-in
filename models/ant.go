@@ -29,3 +29,14 @@ func (a *Ant) GetNextRoom() *Room {
 	}
 	return a.Path[a.PathIdx+1]
 }
+
+// Move ant to the next room in the path and return the new room
+func (a *Ant) Move() *Room {
+	if a.PathIdx >= len(a.Path)-1 {
+		return nil
+	}
+
+	a.PathIdx++
+	a.Position = a.Path[a.PathIdx]
+	return a.Position
+}
