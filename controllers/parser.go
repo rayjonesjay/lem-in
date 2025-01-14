@@ -17,6 +17,36 @@ func NewParser() *Parser {
 	}
 }
 
+func (p *Parser) parseRoom(line string) (*models.Room, error) {
+	parts := strings.Fields(line)
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid room format: %s", line)
+	}
+
+	name := parts[0]
+	if strings.HasPrefix(name, "L") || strings.HasPrefix(name, "#") {
+		return nil, fmt.Errorf("invalid room name: %s", name)
+	}
+
+	x, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return nil, fmt.Errorf("invalid x coordinate: %s", parts[1])
+	}
+
+	y, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, fmt.Errorf("invalid y coordinate: %s", parts[2])
+	}
+
+	if _, exists := p.rooms[name]; exists {
+		return nil, fmt.Errorf("duplicate room name: %s", name)
+	}
+
+	room := models.NewRoom(name, x, y)
+	p.rooms[name] = room
+	return room, nil
+}
+
 func (p *Parser) parseTunnel(line string) error {
 	parts := strings.Split(line, "-")
 	if len(parts) != 2 {
