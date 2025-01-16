@@ -37,10 +37,9 @@ func colonyNoStartRoom() models.Colony {
 	colony.Rooms["C"] = roomC
 	colony.Rooms["D"] = endRoom
 
-	//marking start and end rooms
+	// marking start and end rooms
 	colony.StartFound = false
 	colony.EndFound = true
-	
 
 	return colony
 }
@@ -65,15 +64,15 @@ func colonyNoEndRoom() models.Colony {
 	colony.Rooms["B"] = roomB
 	colony.Rooms["C"] = roomC
 
-	//marking start and end rooms
+	// marking start and end rooms
 	colony.StartFound = true
 	colony.EndFound = false
 
 	return colony
 }
 
-//--Colony with only one path--//
-func colonyOnePath() models.Colony{
+// --Colony with only one path--//
+func colonyOnePath() models.Colony {
 	colony := models.Colony{
 		Rooms: make(map[string]*models.Room),
 	}
@@ -96,14 +95,52 @@ func colonyOnePath() models.Colony{
 	colony.Rooms["C"] = roomC
 	colony.Rooms["D"] = endRoom
 
-	//marking start and end rooms
+	// marking start and end rooms
 	colony.StartRoom = *startRoom
-	colony.EndRoom = * endRoom
+	colony.EndRoom = *endRoom
 	colony.StartFound = true
 	colony.EndFound = true
 
 	return colony
+}
 
+// --Colony with many paths --//
+func colonyMultiplePaths() models.Colony {
+	colony := models.Colony{
+		Rooms: make(map[string]*models.Room),
+	}
+
+	// Creating rooms
+	startRoom := &models.Room{Name: "A", Neighbours: []*models.Room{}}
+	endRoom := &models.Room{Name: "D", Neighbours: []*models.Room{}}
+	roomB := &models.Room{Name: "B", Neighbours: []*models.Room{}}
+	roomC := &models.Room{Name: "C", Neighbours: []*models.Room{}}
+	roomE := &models.Room{Name: "E", Neighbours: []*models.Room{}}
+	roomF := &models.Room{Name: "F", Neighbours: []*models.Room{}}
+
+	// Connecting rooms manually (defining neighbors)
+	startRoom.Neighbours = append(startRoom.Neighbours, roomB, roomE)
+	roomB.Neighbours = append(roomB.Neighbours, startRoom, roomC)
+	roomC.Neighbours = append(roomC.Neighbours, roomB, endRoom)
+	roomE.Neighbours = append(roomE.Neighbours, startRoom, roomF)
+	roomF.Neighbours = append(roomF.Neighbours, roomE, endRoom)
+	endRoom.Neighbours = append(endRoom.Neighbours, roomC, roomF)
+
+	// Adding rooms to the colony
+	colony.Rooms["A"] = startRoom
+	colony.Rooms["B"] = roomB
+	colony.Rooms["C"] = roomC
+	colony.Rooms["D"] = endRoom
+	colony.Rooms["E"] = roomE
+	colony.Rooms["F"] = roomF
+
+	// Marking start and end rooms
+	colony.StartRoom = *startRoom
+	colony.EndRoom = *endRoom
+	colony.StartFound = true
+	colony.EndFound = true
+
+	return colony
 }
 
 func TestPathFinder(t *testing.T) {
@@ -121,16 +158,22 @@ func TestPathFinder(t *testing.T) {
 		},
 
 		{
-			name: "Test with no end room",
-			args: colonyNoEndRoom(),
-			want: nil,
+			name:    "Test with no end room",
+			args:    colonyNoEndRoom(),
+			want:    nil,
 			wantErr: true,
 		},
 
 		{
-			name: "Test with one path",
-			args: colonyOnePath(),
-			want: [][]string{{"A","B","C","D"}},
+			name:    "Test with one path",
+			args:    colonyOnePath(),
+			want:    [][]string{{"A", "B", "C", "D"}},
+			wantErr: false,
+		},
+		{
+			name:    "Test with multiple paths",
+			args:    colonyOnePath(),
+			want:    [][]string{{"A", "B", "C", "D"},{"A", "E", "F", "D"}},
 			wantErr: false,
 		},
 	}
