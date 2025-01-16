@@ -1,0 +1,35 @@
+name: Go CI
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.22.4'  # Specify your Go version
+
+      - name: Install Golint
+        run: go install golang.org/x/lint/golint@latest
+
+      - name: Run Go Fmt
+        run: |
+          echo "Running go fmt..."
+          gofmt -l -w .  # -l to list files, -w to write changes
+          git diff --exit-code  # Fail if there are unformatted files
+
+      - name: Run Go Vet
+        run: |
+          echo "Running go vet..."
+          go vet ./...
+
+      - name: Run Golint
+        run: |
+          echo "Running golint..."
+          golint ./... || true  # Continue even if golint finds issues
