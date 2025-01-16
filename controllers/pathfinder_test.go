@@ -1,47 +1,63 @@
 package controllers
 
 import (
-	"lemin/models"
 	"reflect"
 	"testing"
+
+	"lemin/models"
 )
 
 func TestPathFinder(t *testing.T) {
-	type args struct {
-		colony models.Colony
+	// Creating a sample colony
+	colony := models.Colony{
+		Rooms: make(map[string]*models.Room),
 	}
+
+	// create rooms
+	// Manually creating rooms
+	startRoom := &models.Room{Name: "A", Neighbours: []*models.Room{}}
+	endRoom := &models.Room{Name: "D", Neighbours: []*models.Room{}}
+	roomB := &models.Room{Name: "B", Neighbours: []*models.Room{}}
+	roomC := &models.Room{Name: "C", Neighbours: []*models.Room{}}
+
+	// Connecting rooms manually (defining neighbors)
+	startRoom.Neighbours = append(startRoom.Neighbours, roomB)
+	roomB.Neighbours = append(roomB.Neighbours, startRoom, roomC)
+	roomC.Neighbours = append(roomC.Neighbours, roomB, endRoom)
+	endRoom.Neighbours = append(endRoom.Neighbours, roomC)
+
+	// Adding rooms to the colony
+	colony.Rooms["A"] = startRoom
+	colony.Rooms["B"] = roomB
+	colony.Rooms["C"] = roomC
+	colony.Rooms["D"] = endRoom
+
+	// Marking start and end rooms in the colony
+	colony.StartRoom = *startRoom
+	colony.EndRoom = *endRoom
+	colony.StartFound = true
+	colony.EndFound = true
+
 	tests := []struct {
 		name    string
-		args    args
+		args    models.Colony
 		want    [][]string
 		wantErr bool
 	}{
 		{
-			name: "Valid path from start to end",
-			args: args{
-				colony: models.Colony{
-					Rooms: map[string]*models.Room{
-						"0": {Name: "0", Neighbours: []*models.Room{}},
-						"1": {Name: "1", Neighbours: []*models.Room{}},
-						"2": {Name: "2", Neighbours: []*models.Room{}},
-						"3": {Name: "3", Neighbours: []*models.Room{}},
-					},
-					StartRoom:  models.Room{Name: "0"},
-					EndRoom:    models.Room{Name: "3"},
-					StartFound: true,
-					EndFound:   true,
-				},
-			},
+			name: "Simple test case with one path",
+			args: colony,
 			want: [][]string{
-				{"0", "1", "2", "3"},
+				{"A", "B", "C", "D"},
 			},
 			wantErr: false,
 		},
 	}
-	
+
+	// Running the test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := PathFinder(tt.args.colony)
+			got, err := PathFinder(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PathFinder() error = %v, wantErr %v", err, tt.wantErr)
 				return
