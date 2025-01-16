@@ -13,7 +13,7 @@ import (
 // 2: colony with no end room
 // 3: colony with 1 path
 // 4:colony with 2+ paths
-// colony with no start or end rooms
+// 5:colony with no start or end rooms
 
 // --Colony with no start room--//
 func colonyNoStartRoom() models.Colony {
@@ -50,7 +50,7 @@ func colonyNoEndRoom() models.Colony {
 		Rooms: make(map[string]*models.Room),
 	}
 
-	// creating rooms
+	
 	// Creating rooms
 	startRoom := &models.Room{Name: "A", Neighbours: []*models.Room{}}
 	roomB := &models.Room{Name: "B", Neighbours: []*models.Room{}}
@@ -143,6 +143,40 @@ func colonyMultiplePaths() models.Colony {
 	return colony
 }
 
+//--Colony with no start or end Rooms--//
+func colonyNoStartandEndRooms() models.Colony{
+	colony := models.Colony{
+		Rooms: make(map[string]*models.Room),
+	}
+
+	// Creating rooms
+	roomA := &models.Room{Name: "A", Neighbours: []*models.Room{}}
+	roomB := &models.Room{Name: "B", Neighbours: []*models.Room{}}
+	roomC := &models.Room{Name: "C", Neighbours: []*models.Room{}}
+	roomD := &models.Room{Name: "D", Neighbours: []*models.Room{}}
+
+	// Connecting rooms manually
+	//startRoom.Neighbours = append(startRoom.Neighbours, roomB)
+	roomA.Neighbours = append(roomB.Neighbours, roomB)
+	roomB.Neighbours = append(roomB.Neighbours, roomC, roomA)
+	roomC.Neighbours = append(roomC.Neighbours, roomB, roomD)
+	roomD.Neighbours = append(roomB.Neighbours, roomC)
+	//endRoom.Neighbours = append(endRoom.Neighbours, roomC)
+
+	// Adding rooms to the colony (no start or end room here)
+	colony.Rooms["A"] = roomA
+	colony.Rooms["B"] = roomB
+	colony.Rooms["C"] = roomC
+	colony.Rooms["D"] = roomD
+
+	// marking start and end rooms
+	colony.StartFound = false
+	colony.EndFound = false
+
+	return colony
+
+}
+
 func TestPathFinder(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -172,9 +206,15 @@ func TestPathFinder(t *testing.T) {
 		},
 		{
 			name:    "Test with multiple paths",
-			args:    colonyOnePath(),
+			args:    colonyMultiplePaths(),
 			want:    [][]string{{"A", "B", "C", "D"},{"A", "E", "F", "D"}},
 			wantErr: false,
+		},
+		{
+			name:    "Test with no start room and no end room",
+			args:    colonyNoStartandEndRooms(),
+			want:    nil,
+			wantErr: true,
 		},
 	}
 
