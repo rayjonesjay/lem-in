@@ -6,8 +6,10 @@ package models
 // 2. coordinates
 // 3. neighbours
 type Room struct {
-	Name string
+	Name       string
 	Coordinate Coordinate
+	IsStart    bool
+	IsEnd      bool
 	Neighbours []*Room // a slice of rooms/neighbours
 }
 
