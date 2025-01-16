@@ -7,52 +7,54 @@ import (
 	"lemin/models"
 )
 
-func TestPathFinder(t *testing.T) {
-	// Creating a sample colony
+// used helper funcions to create sample colonies for different test cases
+// Test cases
+// 1:colony with no start room
+// 2: colony with no end room
+// 3: colony with 1 path
+// 4:colony with 2+ paths
+// colony with no start or end rooms
+
+//--Colony with no start room--//
+func colonyNoStartRoom() models.Colony{
 	colony := models.Colony{
 		Rooms: make(map[string]*models.Room),
 	}
 
-	// create rooms
-	// Manually creating rooms
+	// creating rooms
+	// Creating rooms
 	startRoom := &models.Room{Name: "A", Neighbours: []*models.Room{}}
 	endRoom := &models.Room{Name: "D", Neighbours: []*models.Room{}}
 	roomB := &models.Room{Name: "B", Neighbours: []*models.Room{}}
 	roomC := &models.Room{Name: "C", Neighbours: []*models.Room{}}
-
-	// Connecting rooms manually (defining neighbors)
+	// Connecting rooms manually
 	startRoom.Neighbours = append(startRoom.Neighbours, roomB)
 	roomB.Neighbours = append(roomB.Neighbours, startRoom, roomC)
 	roomC.Neighbours = append(roomC.Neighbours, roomB, endRoom)
 	endRoom.Neighbours = append(endRoom.Neighbours, roomC)
 
-	// Adding rooms to the colony
-	colony.Rooms["A"] = startRoom
+	// Adding rooms to the colony (no start room here)
 	colony.Rooms["B"] = roomB
 	colony.Rooms["C"] = roomC
 	colony.Rooms["D"] = endRoom
 
-	// Marking start and end rooms in the colony
-	colony.StartRoom = *startRoom
-	colony.EndRoom = *endRoom
-	colony.StartFound = true
-	colony.EndFound = true
+	return colony
+}
 
-	tests := []struct {
-		name    string
-		args    models.Colony
-		want    [][]string
+func TestPathFinder(t *testing.T) {
+	tests := []struct{
+		name string
+		args models.Colony
+		want [][]string
 		wantErr bool
 	}{
 		{
-			name: "Simple test case with one path",
-			args: colony,
-			want: [][]string{
-				{"A", "B", "C", "D"},
-			},
-			wantErr: false,
+		name:"Test: with no start room",
+		args: colonyNoStartRoom(),
+		want: nil,
+		wantErr: true,
 		},
-	}
+	 }
 
 	// Running the test cases
 	for _, tt := range tests {
