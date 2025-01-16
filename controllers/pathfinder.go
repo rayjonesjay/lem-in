@@ -51,7 +51,6 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 	// start dfs from start room
 	dfs(&colony.StartRoom)
 
-	fmt.Println(paths)
 	return paths, nil
 }
 
