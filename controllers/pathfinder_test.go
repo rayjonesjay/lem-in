@@ -15,8 +15,8 @@ import (
 // 4:colony with 2+ paths
 // colony with no start or end rooms
 
-//--Colony with no start room--//
-func colonyNoStartRoom() models.Colony{
+// --Colony with no start room--//
+func colonyNoStartRoom() models.Colony {
 	colony := models.Colony{
 		Rooms: make(map[string]*models.Room),
 	}
@@ -41,20 +41,50 @@ func colonyNoStartRoom() models.Colony{
 	return colony
 }
 
+// --Colony with No end Room --//
+func colonyNoEndRoom() models.Colony {
+	colony := models.Colony{
+		Rooms: make(map[string]*models.Room),
+	}
+
+	// creating rooms
+	// Creating rooms
+	startRoom := &models.Room{Name: "A", Neighbours: []*models.Room{}}
+	roomB := &models.Room{Name: "B", Neighbours: []*models.Room{}}
+	roomC := &models.Room{Name: "C", Neighbours: []*models.Room{}}
+	// Connecting rooms manually
+	startRoom.Neighbours = append(startRoom.Neighbours, roomB)
+	roomB.Neighbours = append(roomB.Neighbours, startRoom, roomC)
+
+	// Adding rooms to the colony (no start room here)
+	colony.Rooms["A"] = startRoom
+	colony.Rooms["B"] = roomB
+	colony.Rooms["C"] = roomC
+
+	return colony
+}
+
 func TestPathFinder(t *testing.T) {
-	tests := []struct{
-		name string
-		args models.Colony
-		want [][]string
+	tests := []struct {
+		name    string
+		args    models.Colony
+		want    [][]string
 		wantErr bool
 	}{
 		{
-		name:"Test: with no start room",
-		args: colonyNoStartRoom(),
-		want: nil,
-		wantErr: true,
+			name:    "Test: with no start room",
+			args:    colonyNoStartRoom(),
+			want:    nil,
+			wantErr: true,
 		},
-	 }
+
+		{
+			name: "Test with no end room",
+			args: colonyNoEndRoom(),
+			want: nil,
+			wantErr: true,
+		},
+	}
 
 	// Running the test cases
 	for _, tt := range tests {
