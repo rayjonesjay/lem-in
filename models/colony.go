@@ -12,6 +12,19 @@ type Colony struct {
 	Ants         []Ant
 }
 
+// NewColony initializes and returns a new Colony instance
+func NewColony() *Colony {
+	return &Colony{
+		StartRoom:    Room{},
+		StartFound:   false,
+		EndFound:     false,
+		EndRoom:      Room{},
+		NumberOfAnts: 0,
+		Rooms:        make(map[string]*Room),
+		Ants:         make([]Ant, 0),
+	}
+}
+
 // ConnectRooms connects two rooms in the colony by adding each room to the other's neighbours.
 func (c *Colony) ConnectRooms(room1Name, room2Name string) error {
 	room1, exists := c.Rooms[room1Name]
