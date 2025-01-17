@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"sort"
 
 	"lemin/models"
 )
@@ -16,6 +17,7 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 	// check if both start room and end room are present
 	// dfs function to find paths
 	// visted to mark visited paths
+	// sort the final paths to return a slice from the shortest to the longest(optimization)
 	visited := make(map[string]bool)
 	var path []string
 
@@ -30,7 +32,6 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 
 		// add room to current path
 		path = append(path, room.Name)
-		fmt.Println(path)
 
 		// add path to paths if end room is reached
 		if room.Name == colony.EndRoom.Name {
@@ -51,6 +52,12 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 	// start dfs from start room
 	dfs(&colony.StartRoom)
 
+	// sort slice
+	sort.Slice(paths, func(i, j int) bool {
+		return len(paths[i]) < len(paths[j])
+	})
+
+	fmt.Println(paths)
 	return paths, nil
 }
 
