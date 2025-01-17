@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
-	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -20,42 +20,45 @@ func NewParser() *Parser {
 	}
 }
 
-// ParseFile parses input from a file
+// ParseFile parses the read input from the input file into the respective colony fields
+// It returns nil and an error if an error occurs else returns the colony with all fields
+// initialized and a nil value for the error
 func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
-	file, err := os.Open(filename)
+
+	fileContents, err := ReadValidateInputFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("error opening file: %v", err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	// Parse number of ants
-	if !scanner.Scan() {
-		return nil, fmt.Errorf("empty input")
+		return nil, err
 	}
 
-	antCount, err := strconv.ParseUint(scanner.Text(), 10, 64)
-	if err != nil || antCount <= 0 {
-		return nil, fmt.Errorf("invalid ant count: %s", scanner.Text())
+	// store the read input to the Output field, in order to print it out later
+	p.colony.Output = fileContents
+
+	// First Line: Number of ants are at index 0 of the slice since we assume it was read first
+	numberOfAnts, err := strconv.Atoi(string(fileContents[0]))
+
+	if err != nil || numberOfAnts < 1 {
+		return nil, errors.New("invalid number of ants")
 	}
-	p.colony.NumberOfAnts = antCount
+	p.colony.NumberOfAnts = uint64(numberOfAnts)
 
 	// Parse rooms and connections
 	expectingStart := false
 	expectingEnd := false
 
-	for scanner.Scan() {
-		line := scanner.Text()
-
+	// starting off at index 1 since we have already found the number of ants no need to check it
+	for _, line := range fileContents[1:] {
 		switch {
 		case line == "##start":
 			expectingStart = true
+
 		case line == "##end":
 			expectingEnd = true
-		case strings.HasPrefix(line, "#"):
+
+			//if the line starts with # and we have already found the end and start
+		case strings.HasPrefix(line, "#") && expectingStart && expectingEnd:
 			continue
-		case strings.Contains(line, "-"):
+
+		case isLink(line):
 			err := p.parseConnection(line)
 			if err != nil {
 				return nil, err
@@ -70,11 +73,18 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 		}
 	}
 
-	if !p.colony.StartFound || !p.colony.EndFound {
+	if !p.colony.StartFound || !p.colony.EndFound || !expectingStart || !expectingEnd {
 		return nil, fmt.Errorf("missing start or end room")
 	}
 
 	return p.colony, nil
+}
+
+// isLink checks if the s is separated by a hyphen and returns true else false
+func isLink(s string) bool {
+	pattern := `^.+\-.+$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(s)
 }
 
 func (p *Parser) parseRoom(line string, isStart, isEnd bool) error {
