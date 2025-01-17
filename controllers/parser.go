@@ -20,9 +20,7 @@ func NewParser() *Parser {
 	}
 }
 
-// ParseFile parses the read input from the input file into the respective colony fields
-// It returns nil and an error if an error occurs else returns the colony with all fields
-// initialized and a nil value for the error
+// ParseFile accepts a file name and internally calls ReadValidateInputFile to get the contents of the file
 func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 
 	fileContents, err := ReadValidateInputFile(filename)
