@@ -11,7 +11,7 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 	var paths [][]string
 	// check if startroom or end room is missing
 	if !colony.StartFound || !colony.EndFound {
-		return nil, fmt.Errorf("Missing start room or end room")
+		return nil, fmt.Errorf("missing start room or end room")
 	}
 
 	// check if both start room and end room are present
