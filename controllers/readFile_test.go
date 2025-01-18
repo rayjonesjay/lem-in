@@ -47,7 +47,7 @@ func TestReadValidateInputFile(t *testing.T) {
 		}
 	})
 
-	// more tests
+	// more tests need to be added here.
 }
 
 func TestContainsASCII(t *testing.T) {
@@ -59,12 +59,13 @@ func TestContainsASCII(t *testing.T) {
 		{"valid1", "Hello World", true},
 		{"invalid1", "こんにちは、世界！", false},
 		{"valid2", "be the best", true},
+		{"empty", "", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ContainsASCII(tt.input); got != tt.want {
-				t.Errorf("ContainsASCII() = %v, want %v", got, tt.want)
+				t.Errorf("ContainsASCII() found an invalid character = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -26,7 +26,7 @@ func ReadValidateInputFile(filename string) (fileContents []string, err error) {
 	for scanner.Scan() {
 		currentLine := scanner.Text()
 
-		// check if the read line contains only valid ASCII characters and skips it
+		// check if the read line contains a character that is not ASCII and ignores it
 		if !ContainsASCII(currentLine) {
 			continue
 		}

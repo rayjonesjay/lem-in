@@ -53,7 +53,10 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 			expectingEnd = true
 
 			//if the line starts with # and we have already found the end and start
-		case strings.HasPrefix(line, "#") && expectingStart && expectingEnd:
+		case strings.HasPrefix(line, "#"):
+			if expectingStart && expectingEnd {
+				continue
+			}
 			continue
 
 		case isLink(line):
