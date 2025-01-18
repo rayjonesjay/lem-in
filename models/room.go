@@ -11,8 +11,6 @@ type Room struct {
 	IsStart    bool
 	IsEnd      bool
 	Neighbours []*Room // a slice of rooms/neighbours
-	IsStart bool
-	IsEnd bool
 }
 
 // Cartesian coordinates, this type represent the X and Y coordinates of a room
