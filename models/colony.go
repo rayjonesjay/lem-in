@@ -10,7 +10,9 @@ type Colony struct {
 	NumberOfAnts uint64
 	Rooms        map[string]*Room
 	Ants         []Ant
+	Output       []string
 }
+
 
 // NewColony initializes and returns a new Colony instance
 func NewColony() *Colony {
@@ -40,4 +42,12 @@ func (c *Colony) ConnectRooms(room1Name, room2Name string) error {
 	room1.Neighbours = append(room1.Neighbours, room2)
 	room2.Neighbours = append(room2.Neighbours, room1)
 	return nil
+}
+
+// GetRoomByName retrieves a room by its name from the colony's Rooms map.
+func (c *Colony) GetRoomByName(name string) *Room {
+	if room, exists := c.Rooms[name]; exists {
+		return room
+	}
+	return nil // Return nil if the room doesn't exist
 }
