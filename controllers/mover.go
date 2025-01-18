@@ -12,14 +12,12 @@ type Movement struct {
 
 // Mover coordinates simultaneous ant movements
 type Mover struct {
-	ants   []*models.Ant
-	colony *models.Colony // Reference to the Colony for start and end room
+	colony *models.Colony // Reference to the Colony for ants and rooms
 }
 
 // NewMover creates a new Mover instance
-func NewMover(ants []*models.Ant, colony *models.Colony) *Mover {
+func NewMover(colony *models.Colony) *Mover {
 	return &Mover{
-		ants:   ants,
 		colony: colony,
 	}
 }
@@ -48,7 +46,7 @@ func (m *Mover) executeNextStep() []Movement {
 	finished := make(map[int]bool) // Track ants that are done
 
 	// Prepopulate occupied map with current positions (excluding start and end rooms)
-	for _, ant := range m.ants {
+	for _, ant := range m.colony.Ants {
 		if ant.Position != nil &&
 			ant.Position.Name != m.colony.StartRoom.Name &&
 			ant.Position.Name != m.colony.EndRoom.Name {
@@ -57,7 +55,7 @@ func (m *Mover) executeNextStep() []Movement {
 	}
 
 	// Try to move each ant that hasn't finished
-	for _, ant := range m.ants {
+	for _, ant := range m.colony.Ants {
 		if finished[ant.ID] {
 			continue
 		}
