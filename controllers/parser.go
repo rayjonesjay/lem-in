@@ -22,7 +22,6 @@ func NewParser() *Parser {
 
 // ParseFile accepts a file name and internally calls ReadValidateInputFile to get the contents of the file
 func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
-
 	fileContents, err := ReadValidateInputFile(filename)
 	if err != nil {
 		return nil, err
@@ -52,7 +51,7 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 		case line == "##end":
 			expectingEnd = true
 
-			//if the line starts with # and we have already found the end and start
+			// if the line starts with # and we have already found the end and start
 		case strings.HasPrefix(line, "#"):
 			if expectingStart && expectingEnd {
 				continue
@@ -74,10 +73,10 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 		}
 	}
 
-	if !p.colony.StartFound || !p.colony.EndFound || !expectingStart || !expectingEnd {
+	if !p.colony.StartFound || !p.colony.EndFound {
 		return nil, fmt.Errorf("missing start or end room")
 	}
-
+	
 	return p.colony, nil
 }
 
@@ -111,7 +110,7 @@ func (p *Parser) parseRoom(line string, isStart, isEnd bool) error {
 			X: x,
 			Y: y,
 		},
-		Neighbours: make([]*models.Room, 0),
+		Neighbours: make([]string, 0),
 	}
 
 	if isStart {

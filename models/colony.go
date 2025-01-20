@@ -13,7 +13,6 @@ type Colony struct {
 	Output       []string
 }
 
-
 // NewColony initializes and returns a new Colony instance
 func NewColony() *Colony {
 	return &Colony{
@@ -39,8 +38,8 @@ func (c *Colony) ConnectRooms(room1Name, room2Name string) error {
 		return fmt.Errorf("room %s not found", room2Name)
 	}
 
-	room1.Neighbours = append(room1.Neighbours, room2)
-	room2.Neighbours = append(room2.Neighbours, room1)
+	room1.Neighbours = append(room1.Neighbours, room2.Name)
+	room2.Neighbours = append(room2.Neighbours, room1.Name)
 	return nil
 }
 

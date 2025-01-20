@@ -1,98 +1,49 @@
 package controllers
 
 import (
+	"fmt"
 	"lemin/models"
 )
 
-// Movement represents a single ant movement for output
-type Movement struct {
-	AntID  int
-	ToRoom string
-}
+func Mover(c *models.Colony) {
+	// Track positions of ants in a map for each turn
+	for turn := 1; turn <= len(c.Ants[0].Path); turn++ {
+		fmt.Printf("Turn %d: ", turn)
 
-// Mover coordinates simultaneous ant movements
-type Mover struct {
-	colony *models.Colony // Reference to the Colony for ants and rooms
-}
+		// Track which rooms are occupied (map of room -> ant ID)
+		occupied := make(map[string]int)
 
-// NewMover creates a new Mover instance
-func NewMover(colony *models.Colony) *Mover {
-	return &Mover{
-		colony: colony,
-	}
-}
+		// Store the movement results
+		movementResults := make(map[int]string)
 
-// ExecuteMovements returns a series of steps where each step contains
-// simultaneous valid movements for that turn
-func (m *Mover) ExecuteMovements() [][]Movement {
-	var allSteps [][]Movement
-
-	// Continue until all ants reach the end
-	for {
-		currentMoves := m.executeNextStep()
-		if len(currentMoves) == 0 {
-			break
-		}
-		allSteps = append(allSteps, currentMoves)
-	}
-
-	return allSteps
-}
-
-// executeNextStep performs one turn of simultaneous ant movements
-func (m *Mover) executeNextStep() []Movement {
-	var moves []Movement
-	occupied := make(map[string]bool)
-	finished := make(map[int]bool) // Track ants that are done
-
-	// Prepopulate occupied map with current positions (excluding start and end rooms)
-	for _, ant := range m.colony.Ants {
-		if ant.Position != nil &&
-			ant.Position.Name != m.colony.StartRoom.Name &&
-			ant.Position.Name != m.colony.EndRoom.Name {
-			occupied[ant.Position.Name] = true
-		}
-	}
-
-	// Try to move each ant that hasn't finished
-	for _, ant := range m.colony.Ants {
-		if finished[ant.ID] {
-			continue
-		}
-
-		nextRoom := ant.GetNextRoom()
-		if nextRoom == nil {
-			// Mark the ant as finished if there's no next room
-			finished[ant.ID] = true
-			continue
-		}
-
-		// Skip occupancy check for start and end rooms
-		if nextRoom.Name == m.colony.StartRoom.Name ||
-			nextRoom.Name == m.colony.EndRoom.Name ||
-			!occupied[nextRoom.Name] {
-			moves = append(moves, Movement{
-				AntID:  ant.ID,
-				ToRoom: nextRoom.Name,
-			})
-
-			// Update occupancy for the current room (if not start or end room)
-			if ant.Position != nil &&
-				ant.Position.Name != m.colony.StartRoom.Name &&
-				ant.Position.Name != m.colony.EndRoom.Name {
-				occupied[ant.Position.Name] = false
+		// First pass: check which ants can move and ensure no room is occupied
+		for _, ant := range c.Ants {
+			// Get the next room the ant should move to
+			nextRoom := ant.GetNextRoom()
+			if nextRoom == "" {
+				continue // Skip if no next room (end of path)
 			}
 
-			// Mark the next room as occupied (if not start or end room)
-			if nextRoom.Name != m.colony.StartRoom.Name &&
-				nextRoom.Name != m.colony.EndRoom.Name {
-				occupied[nextRoom.Name] = true
+			// Check if the room is already occupied by another ant
+			if _, exists := occupied[nextRoom]; exists {
+				// If occupied, the ant doesn't move (it stays in the same room)
+				movementResults[ant.ID] = ant.Position
+			} else {
+				// Mark the room as occupied
+				occupied[nextRoom] = ant.ID
+				// Move the ant and record the new position
+				ant.Move()
+				movementResults[ant.ID] = ant.Position
 			}
-
-			// Move the ant
-			ant.Move()
 		}
-	}
 
-	return moves
+		// Print the results for this turn in the required format
+		for _, ant := range c.Ants {
+			if movementResults[ant.ID] != "" {
+				// Print the ant ID and its position
+				fmt.Printf("L%d-%s ", ant.ID, movementResults[ant.ID])
+			}
+		}
+		fmt.Println() // Newline after each turn
+	}
 }

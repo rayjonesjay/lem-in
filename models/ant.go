@@ -2,8 +2,8 @@ package models
 
 type Ant struct {
 	ID       int
-	Position *Room
-	Path     []*Room
+	Position string
+	Path     []string
 	PathIdx  int
 }
 
@@ -11,29 +11,30 @@ type Ant struct {
 func NewAnt(id int, startRoom *Room) *Ant {
 	return &Ant{
 		ID:       id,
-		Position: startRoom,
+		Position: "",
+		Path:     []string{},
 		PathIdx:  0,
 	}
 }
 
-// Move ant to the next room in the path
-func (a *Ant) SetPath(path []*Room) {
+// SetPath sets the path
+func (a *Ant) SetPath(path []string) {
 	a.Path = path
 	a.PathIdx = 0
 }
 
 // GetNextRoom returns the next room in the path without moving the ant
-func (a *Ant) GetNextRoom() *Room {
+func (a *Ant) GetNextRoom() string {
 	if a.PathIdx >= len(a.Path)-1 {
-		return nil
+		return ""
 	}
 	return a.Path[a.PathIdx+1]
 }
 
 // Move ant to the next room in the path and return the new room
-func (a *Ant) Move() *Room {
+func (a *Ant) Move() string {
 	if a.PathIdx >= len(a.Path)-1 {
-		return nil
+		return ""
 	}
 
 	a.PathIdx++
