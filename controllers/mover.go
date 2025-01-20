@@ -6,44 +6,91 @@ import (
 )
 
 func Mover(c *models.Colony) {
-	// Track positions of ants in a map for each turn
-	for turn := 1; turn <= len(c.Ants[0].Path); turn++ {
-		fmt.Printf("Turn %d: ", turn)
+	colony, maxTurns := InitializeAnts(c)
 
-		// Track which rooms are occupied (map of room -> ant ID)
-		occupied := make(map[string]int)
+	// Track which rooms are occupied by which ants
+	occupied := make(map[string]*models.Ant)
+	numberOfAntsAtEnd := 0
 
-		// Store the movement results
-		movementResults := make(map[int]string)
+	// Initialize all ants at start position
+	for i := range colony.Ants {
+		colony.Ants[i].Position = colony.StartRoom.Name
+	}
 
-		// First pass: check which ants can move and ensure no room is occupied
-		for _, ant := range c.Ants {
-			// Get the next room the ant should move to
-			nextRoom := ant.GetNextRoom()
-			if nextRoom == "" {
-				continue // Skip if no next room (end of path)
-			}
+	var allMoves [][]string
+	turnCount := 0
 
-			// Check if the room is already occupied by another ant
-			if _, exists := occupied[nextRoom]; exists {
-				// If occupied, the ant doesn't move (it stays in the same room)
-				movementResults[ant.ID] = ant.Position
-			} else {
-				// Mark the room as occupied
-				occupied[nextRoom] = ant.ID
-				// Move the ant and record the new position
-				ant.Move()
-				movementResults[ant.ID] = ant.Position
+	// Continue until all ants reach the end
+	for numberOfAntsAtEnd < len(colony.Ants) && turnCount < maxTurns {
+		currentTurnMoves := make([]string, 0)
+		movedThisTurn := make(map[int]bool)
+
+		// Keep trying moves until no more moves are possible this turn
+		changed := true
+		for changed {
+			changed = false
+
+			// Try to move each ant
+			for i := range colony.Ants {
+				if movedThisTurn[colony.Ants[i].ID] {
+					continue
+				}
+
+				ant := &colony.Ants[i]
+
+				// Skip if ant is already at end
+				if ant.Position == colony.EndRoom.Name {
+					continue
+				}
+
+				// Find next room in ant's path
+				var nextRoom string
+				for j, room := range ant.Path {
+					if room == ant.Position && j+1 < len(ant.Path) {
+						nextRoom = ant.Path[j+1]
+						break
+					}
+				}
+
+				// Move ant if next room is available
+				if nextRoom != "" && occupied[nextRoom] == nil {
+					// Clear current room from occupied map
+					if ant.Position != colony.StartRoom.Name {
+						delete(occupied, ant.Position)
+					}
+
+					// Move ant
+					ant.Position = nextRoom
+
+					// Update occupied rooms and ant count
+					if nextRoom != colony.EndRoom.Name {
+						occupied[nextRoom] = ant
+					} else {
+						numberOfAntsAtEnd++
+					}
+
+					currentTurnMoves = append(currentTurnMoves, fmt.Sprintf("L%d-%s", ant.ID, nextRoom))
+					movedThisTurn[ant.ID] = true
+					changed = true
+				}
 			}
 		}
 
-		// Print the results for this turn in the required format
-		for _, ant := range c.Ants {
-			if movementResults[ant.ID] != "" {
-				// Print the ant ID and its position
-				fmt.Printf("L%d-%s ", ant.ID, movementResults[ant.ID])
-			}
+		// Add turn if any moves were made
+		if len(currentTurnMoves) > 0 {
+			allMoves = append(allMoves, currentTurnMoves)
 		}
-		fmt.Println() // Newline after each turn
+		turnCount++
+	}
+
+	// Print all moves
+	for _, turnMoves := range allMoves {
+		for i, move := range turnMoves {
+			if i > 0 {
+				fmt.Print(" ")
+			}
+			fmt.Print(move)
+		}
+		fmt.Println()
 	}
 }
