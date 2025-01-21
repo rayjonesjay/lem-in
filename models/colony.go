@@ -10,6 +10,7 @@ type Colony struct {
 	NumberOfAnts uint64
 	Rooms        map[string]*Room
 	Ants         []Ant
+	Output       []string
 }
 
 // NewColony initializes and returns a new Colony instance
