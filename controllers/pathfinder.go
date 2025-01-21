@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"slices"
@@ -96,7 +95,6 @@ func optimize2(paths [][]string) [][]string {
 			optimizedPaths = append(optimizedPaths, paths[i])
 		}
 	}
-	fmt.Println(optimizedPaths)
 	return optimizedPaths
 }
 
