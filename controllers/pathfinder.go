@@ -1,21 +1,21 @@
 package controllers
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
 	"lemin/models"
 )
 
-func PathFinder(colony models.Colony) ([][]string, error) {
+func PathFinder(colony models.Colony) (paths1 [][]string, paths2 [][]string, error error) {
 	var paths [][]string
-	// check if startroom or end room is missing
+	
+	// recursve dfs function to find paths
+	// visited to mark visited paths
+	//sort the paths by length
+	//two optimization functions to get optimized paths
+	// return both paths to be used in the movement and distribution functions
 
-	// check if both start room and end room are present
-	// dfs function to find paths
-	// visted to mark visited paths
-	// sort the final paths to return a slice from the shortest to the longest(optimization)
 	visited := make(map[string]bool)
 	var path []string
 
@@ -26,9 +26,7 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 			return
 		}
 
-		// fmt.Println(r)
 		// mark room as visited
-
 		visited[r] = true
 
 		// add room to current path
@@ -60,16 +58,12 @@ func PathFinder(colony models.Colony) ([][]string, error) {
 
 	optimizedPath1 := optimize(paths, colony)
 	optimizedPath2 := optimize2(paths)
-	fmt.Println("one", optimizedPath1)
-	fmt.Println("two", optimizedPath2)
-	if len(optimizedPath1) > len(optimizedPath2) {
-		return optimizedPath1, nil
-	} else {
-		return optimizedPath2, nil
-	}
+	return optimizedPath1, optimizedPath2, nil
 }
 
 // optimizating paths 1
+//adds path to the slice of optimized paths only if the following conditions are met:
+//the length of the path is less than or equal to half the number of ants, the length of the room is not equal to the length of the first room in the optimized path and  if none of the rooms in the path is in the optimized paths
 func optimize(paths [][]string, Num models.Colony) [][]string {
 	optimizedPaths := [][]string{}
 	optimizedPaths = append(optimizedPaths, paths[0])
@@ -90,7 +84,7 @@ func optimize(paths [][]string, Num models.Colony) [][]string {
 }
 
 // optimizing paths 2
-
+//returns unique paths only
 func optimize2(paths [][]string) [][]string {
 	optimizedPaths := [][]string{}
 	optimizedPaths = append(optimizedPaths, paths[0])
@@ -102,7 +96,7 @@ func optimize2(paths [][]string) [][]string {
 	return optimizedPaths
 }
 
-// helper function
+// helper function to check if rooms in slice b are found in any rooms that are already in the slice of paths
 func contains(a [][]string, b []string) bool {
 	for _, slice := range a {
 		for item := range slice {
