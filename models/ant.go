@@ -7,7 +7,7 @@ type Ant struct {
 	PathIdx  int
 }
 
-// Create a new ant with the given ID and starting room
+// NewAnt creates a new ant with the given ID and starting room
 func NewAnt(id int, startRoom *Room) *Ant {
 	return &Ant{
 		ID:       id,
