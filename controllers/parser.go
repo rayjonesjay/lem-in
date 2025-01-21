@@ -73,7 +73,7 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 		}
 	}
 
-	if !p.colony.StartFound || !p.colony.EndFound {
+	if !p.colony.StartFound || !p.colony.EndFound || !expectingStart || !expectingEnd {
 		return nil, fmt.Errorf("missing start or end room")
 	}
 	
