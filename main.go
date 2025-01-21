@@ -14,25 +14,17 @@ func main() {
 		return
 	}
 	p := controllers.NewParser()
-	fmt.Println("Parsing file...")
+	// fmt.Println("Parsing file...")
 	c, err := p.ParseFile(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(c)
-	fmt.Println("Success")
 
-	fmt.Println("Initializing ants to paths..")
 	controllers.InitializeAnts(c)
-	fmt.Println("Initialization successful")
-
-	fmt.Println("Starting the movement...let them in ")
 
 	controllers.Mover(c)
-
-	fmt.Println("Movements successful")
-	fmt.Println("let them in ")
+	
 	// read the file name from the command line
 	arguments := os.Args[1:]
 	if len(arguments) != 1 {
