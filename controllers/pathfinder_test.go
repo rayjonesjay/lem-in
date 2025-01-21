@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"lemin/models"
 	"reflect"
 	"testing"
 )
@@ -76,7 +77,7 @@ func Test_contains(t *testing.T) {
 					{"d", "e", "f"},
 					{"g", "h", "i"},
 				},
-				b: []string{"d", "e"},
+				b: []string{"d", "e", "f"},
 			},
 			want: true,
 		},
@@ -212,7 +213,7 @@ func Test_optimize2(t *testing.T) {
 				paths: [][]string{
 					{"a", "b"},
 					{"c", "d", "e"},
-					{"a", "b"},
+					{"a", "b", "c" },
 				},
 			},
 			want: [][]string{
@@ -225,6 +226,126 @@ func Test_optimize2(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := optimize2(tt.args.paths); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("optimize2() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+//Test for optimizating paths 1
+// adds path to the slice of optimized paths only if the following conditions are met:
+// the length of the path is less than or equal to half the number of ants, the length of the room is not equal to the length of the first room in the optimized path and  if none of the rooms in the path
+func Test_optimize(t *testing.T) {
+	type args struct {
+		paths [][]string
+		Num   models.Colony
+	}
+	tests := []struct {
+		name string
+		args args
+		want [][]string
+	}{
+		{
+			name: "Path length less than half the number of ants and no overlap",
+			args: args{
+				paths: [][]string{
+					{"A", "B", "C", "D" ,"F"},
+					{"A", "D", "E", "F"},
+				},
+				Num: models.Colony{
+					NumberOfAnts: 8,
+				},
+			},
+			want: [][]string{
+				{"A", "B", "C","D" ,"F"},
+			},
+		},
+		{
+			name: "Path length exceeds half the number of ants",
+			args: args{
+				paths: [][]string{
+					{"A", "B", "C", "D", "E"},
+					{"F", "G"},
+				},
+				Num: models.Colony{
+					NumberOfAnts: 8,
+				},
+			},
+			want: [][]string{
+				{"F", "G"},
+			},
+		},
+		{
+			name: "Path overlaps with another path",
+			args: args{
+				paths: [][]string{
+					{"K", "B", "C"},
+					{"K","B", "D", "E"},
+				},
+				Num: models.Colony{
+					NumberOfAnts: 6,
+				},
+			},
+			want: [][]string{
+				{"K", "B", "C"},
+			},
+		},
+		{
+			name: "Path with the same length as the first room in optimized path",
+			args: args{
+				paths: [][]string{
+					{"A", "B", "C"},
+					{"A","D", "C"},
+					{"G", "H", "C"},
+				},
+				Num: models.Colony{
+					NumberOfAnts: 10,
+				},
+			},
+			want: [][]string{
+				
+				{"G", "H", "C"},
+				{"A", "D", "C"},
+				{"A", "B", "C"},
+			},
+		},
+		{
+			name: "All paths meet conditions",
+			args: args{
+				paths: [][]string{
+					{"A", "B"},
+					{"C", "D", "E"},
+					{"F", "G", "H"},
+				},
+				Num: models.Colony{
+					NumberOfAnts: 10,
+				},
+			},
+			want: [][]string{
+				{"F", "G", "H"},
+				{"C", "D", "E"},
+			},
+		},
+		{
+			name: "No valid paths",
+			args: args{
+				paths: [][]string{
+					{"A", "B", "C", "D", "E"},
+					{"B", "C", "D", "E", "F"},
+				},
+				Num: models.Colony{
+					NumberOfAnts: 6,
+				},
+			},
+			want: [][]string{
+				{"A", "B", "C", "D", "E"},
+		},
+	},
+
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := optimize(tt.args.paths, tt.args.Num); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("optimize() = %v, want %v", got, tt.want)
 			}
 		})
 	}
