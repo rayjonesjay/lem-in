@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+
 	"lemin/models"
 )
 
@@ -82,6 +83,11 @@ func Mover(c *models.Colony) {
 		}
 		turnCount++
 	}
+
+	for _, input := range c.Output {
+		fmt.Println(input)
+	}
+	println()
 
 	// Print all moves
 	for _, turnMoves := range allMoves {
