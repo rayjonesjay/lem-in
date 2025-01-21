@@ -38,7 +38,15 @@ func (c *Colony) ConnectRooms(room1Name, room2Name string) error {
 		return fmt.Errorf("room %s not found", room2Name)
 	}
 
-	room1.Neighbours = append(room1.Neighbours, room2)
-	room2.Neighbours = append(room2.Neighbours, room1)
+	room1.Neighbours = append(room1.Neighbours, room2.Name)
+	room2.Neighbours = append(room2.Neighbours, room1.Name)
 	return nil
+}
+
+// GetRoomByName retrieves a room by its name from the colony's Rooms map.
+func (c *Colony) GetRoomByName(name string) *Room {
+	if room, exists := c.Rooms[name]; exists {
+		return room
+	}
+	return nil // Return nil if the room doesn't exist
 }

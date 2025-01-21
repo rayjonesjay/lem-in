@@ -10,9 +10,7 @@ type Room struct {
 	Coordinate Coordinate
 	IsStart    bool
 	IsEnd      bool
-	Neighbours []*Room // a slice of rooms/neighbours
-	IsStart bool
-	IsEnd bool
+	Neighbours []string // a slice of rooms/neighbours
 }
 
 // Cartesian coordinates, this type represent the X and Y coordinates of a room
