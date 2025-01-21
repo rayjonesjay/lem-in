@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
+	xerrors "lemin/xerror"
 	"regexp"
 	"strconv"
 	"strings"
@@ -34,7 +34,7 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 	numberOfAnts, err := strconv.Atoi(string(fileContents[0]))
 
 	if err != nil || numberOfAnts < 1 {
-		return nil, errors.New("invalid number of ants")
+		return nil, xerrors.ErrInvalidNumberOfAnts
 	}
 	p.colony.NumberOfAnts = uint64(numberOfAnts)
 
@@ -46,9 +46,11 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 	for _, line := range fileContents[1:] {
 		switch {
 		case line == "##start":
+			p.colony.StartFound = true
 			expectingStart = true
 
 		case line == "##end":
+			p.colony.EndFound = true
 			expectingEnd = true
 
 			// if the line starts with # and we have already found the end and start
@@ -68,15 +70,13 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 			if err != nil {
 				return nil, err
 			}
-			expectingStart = false
-			expectingEnd = false
 		}
 	}
 
 	if !p.colony.StartFound || !p.colony.EndFound || !expectingStart || !expectingEnd {
-		return nil, fmt.Errorf("missing start or end room")
+		return nil, xerrors.ErrInvalidDataFormat
 	}
-	
+
 	return p.colony, nil
 }
 
@@ -96,12 +96,12 @@ func (p *Parser) parseRoom(line string, isStart, isEnd bool) error {
 	name := parts[0]
 	x, err := strconv.ParseFloat(parts[1], 64)
 	if err != nil {
-		return fmt.Errorf("invalid x coordinate: %s", parts[1])
+		return xerrors.ErrWrongXCoord
 	}
 
 	y, err := strconv.ParseFloat(parts[2], 64)
 	if err != nil {
-		return fmt.Errorf("invalid y coordinate: %s", parts[2])
+		return xerrors.ErrWrongYCoord
 	}
 
 	room := &models.Room{
