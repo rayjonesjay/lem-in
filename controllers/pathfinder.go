@@ -9,8 +9,8 @@ import (
 
 func PathFinder(colony models.Colony) (paths1 [][]string, paths2 [][]string, error error) {
 	var paths [][]string
-	
-	// recursve dfs function to find paths
+
+	// recursive dfs function to find paths
 	// visited to mark visited paths
 	//sort the paths by length
 	//two optimization functions to get optimized paths
@@ -61,11 +61,11 @@ func PathFinder(colony models.Colony) (paths1 [][]string, paths2 [][]string, err
 	return optimizedPath1, optimizedPath2, nil
 }
 
-// optimizating paths 1
-//adds path to the slice of optimized paths only if the following conditions are met:
-//the length of the path is less than or equal to half the number of ants, the length of the room is not equal to the length of the first room in the optimized path and  if none of the rooms in the path is in the optimized paths
+// optimizing paths 1
+// adds path to the slice of optimized paths only if the following conditions are met:
+// the length of the path is less than or equal to half the number of ants, the length of the room is not equal to the length of the first room in the optimized path and  if none of the rooms in the path is in the optimized paths
 func optimize(paths [][]string, Num models.Colony) [][]string {
-	optimizedPaths := [][]string{}
+	var optimizedPaths [][]string
 	optimizedPaths = append(optimizedPaths, paths[0])
 	for i := 1; i < len(paths); i++ {
 		firstPath := optimizedPaths[0]
@@ -84,9 +84,9 @@ func optimize(paths [][]string, Num models.Colony) [][]string {
 }
 
 // optimizing paths 2
-//returns unique paths only
+// returns unique paths only
 func optimize2(paths [][]string) [][]string {
-	optimizedPaths := [][]string{}
+	var optimizedPaths [][]string
 	optimizedPaths = append(optimizedPaths, paths[0])
 	for i := 1; i < len(paths); i++ {
 		if !contains(optimizedPaths, paths[i][1:len(paths[i])-1]) {
