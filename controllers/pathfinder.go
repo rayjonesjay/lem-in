@@ -7,11 +7,11 @@ import (
 	"sort"
 
 	"lemin/models"
+	"lemin/xerror"
 )
 
 func PathFinder(colony models.Colony) (paths1 [][]string, paths2 [][]string, error error) {
 	var paths [][]string
-
 	// recursive dfs function to find paths
 	// visited to mark visited paths
 	// sort the paths by length
@@ -58,8 +58,12 @@ func PathFinder(colony models.Colony) (paths1 [][]string, paths2 [][]string, err
 		return len(paths[i]) < len(paths[j])
 	})
 
+	if len(paths) == 0 {
+		return nil, nil, xerror.ErrInvalidDataFormat
+	}
 	optimizedPath1 := optimize(paths, colony)
 	optimizedPath2 := optimize2(paths)
+
 	return optimizedPath1, optimizedPath2, nil
 }
 
