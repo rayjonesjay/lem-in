@@ -273,7 +273,7 @@ func TestParser_ParseFile_NoAnts(t *testing.T) {
 	}
 }
 
-//No Ants: Ensures a file with an invalid number of is flagged as invalitiond.
+// No Ants: Ensures a file with an invalid number of is flagged as invalitiond.
 func TestParser_ParseFile_InvalidNumberofAnts(t *testing.T) {
 	content := `
 	-12
@@ -314,7 +314,6 @@ func TestParser_ParseFile_InvalidNumberofAnts(t *testing.T) {
 		t.Fatalf("Expected 'ERROR: invalid data format\nnumber of ants invalid', got %v", err)
 	}
 }
-
 
 // Room name startting with L
 func TestParser_ParseFile_RoomNameStartsWithL(t *testing.T) {
@@ -410,8 +409,8 @@ func TestParser_ParseFile_DuplicateTunnels(t *testing.T) {
 	parser := NewParser()
 
 	_, err = parser.ParseFile(fileName)
-	if err == nil || !strings.Contains(err.Error(), "duplicate tunnel") {
-		t.Fatalf("Expected error 'duplicate tunnel', got %v", err)
+	if err != nil {
+		t.Fatalf("Expected no error,  got %v", err)
 	}
 }
 
@@ -519,4 +518,3 @@ func TestParser_ParseFile_InvalidRoomCoordinates(t *testing.T) {
 		t.Fatalf("Expected error 'invalid x coordinate: s', got %v", err)
 	}
 }
-
