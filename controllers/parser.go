@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"lemin/models"
+	"lemin/xerror"
 )
 
 type Parser struct {
@@ -35,7 +35,7 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 	numberOfAnts, err := strconv.Atoi(string(fileContents[0]))
 
 	if err != nil || numberOfAnts < 1 {
-		return nil, errors.New("invalid number of ants")
+		return nil, xerror.ErrInvalidNumberOfAnts
 	}
 	p.colony.NumberOfAnts = uint64(numberOfAnts)
 
@@ -77,7 +77,7 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 	if !p.colony.StartFound || !p.colony.EndFound {
 		return nil, fmt.Errorf("missing start or end room")
 	}
-	
+
 	return p.colony, nil
 }
 
