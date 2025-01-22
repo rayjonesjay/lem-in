@@ -22,6 +22,8 @@ var (
 	ErrWrongXCoord = errors.New("ERROR: wrong x coordinates detected")
 
 	ErrWrongYCoord = errors.New("ERROR: wrong y coordinates detected")
+
+	ErrWrongRoomName = errors.New("ERROR: room starts with # or L ")
 )
 
 func ErrorWriter(err error, exitCode int, shouldExit bool) {
