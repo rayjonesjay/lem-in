@@ -213,7 +213,7 @@ func Test_optimize2(t *testing.T) {
 				paths: [][]string{
 					{"a", "b"},
 					{"c", "d", "e"},
-					{"a", "b", "c" },
+					{"a", "b", "c"},
 				},
 			},
 			want: [][]string{
@@ -231,7 +231,7 @@ func Test_optimize2(t *testing.T) {
 	}
 }
 
-//Test for optimizating paths 1
+// Test for optimizating paths 1
 // adds path to the slice of optimized paths only if the following conditions are met:
 // the length of the path is less than or equal to half the number of ants, the length of the room is not equal to the length of the first room in the optimized path and  if none of the rooms in the path
 func Test_optimize(t *testing.T) {
@@ -248,7 +248,7 @@ func Test_optimize(t *testing.T) {
 			name: "Path length less than half the number of ants and no overlap",
 			args: args{
 				paths: [][]string{
-					{"A", "B", "C", "D" ,"F"},
+					{"A", "B", "C", "D", "F"},
 					{"A", "D", "E", "F"},
 				},
 				Num: models.Colony{
@@ -256,7 +256,7 @@ func Test_optimize(t *testing.T) {
 				},
 			},
 			want: [][]string{
-				{"A", "B", "C","D" ,"F"},
+				{"A", "B", "C", "D", "F"},
 			},
 		},
 		{
@@ -279,7 +279,7 @@ func Test_optimize(t *testing.T) {
 			args: args{
 				paths: [][]string{
 					{"K", "B", "C"},
-					{"K","B", "D", "E"},
+					{"K", "B", "D", "E"},
 				},
 				Num: models.Colony{
 					NumberOfAnts: 6,
@@ -294,7 +294,7 @@ func Test_optimize(t *testing.T) {
 			args: args{
 				paths: [][]string{
 					{"A", "B", "C"},
-					{"A","D", "C"},
+					{"A", "D", "C"},
 					{"G", "H", "C"},
 				},
 				Num: models.Colony{
@@ -302,7 +302,7 @@ func Test_optimize(t *testing.T) {
 				},
 			},
 			want: [][]string{
-				
+
 				{"G", "H", "C"},
 				{"A", "D", "C"},
 				{"A", "B", "C"},
@@ -338,9 +338,8 @@ func Test_optimize(t *testing.T) {
 			},
 			want: [][]string{
 				{"A", "B", "C", "D", "E"},
+			},
 		},
-	},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
