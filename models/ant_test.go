@@ -36,7 +36,7 @@ func TestAnt(t *testing.T) {
 			X: 1.0,
 			Y: 1.0,
 		},
-		Neighbours: []string{"start"}, // Neighbours should be names of rooms (strings)
+		// Neighbours should be names of rooms (strings)
 	}
 
 	room2 := &Room{
@@ -45,7 +45,7 @@ func TestAnt(t *testing.T) {
 			X: 2.0,
 			Y: 2.0,
 		},
-		Neighbours: []string{"room1"}, // Neighbours should be names of rooms (strings)
+		// Neighbours should be names of rooms (strings)
 	}
 
 	// Test movement along path
