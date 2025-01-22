@@ -80,7 +80,6 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 		return nil, fmt.Errorf("missing start or end room")
 	}
 
-	fmt.Println("colony: ", p.colony.Rooms)
 	return p.colony, nil
 }
 
