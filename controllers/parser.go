@@ -58,6 +58,8 @@ func (p *Parser) ParseFile(filename string) (*models.Colony, error) {
 				continue
 			}
 			continue
+		case strings.HasPrefix(line, "L"):
+			return nil, xerror.ErrWrongRoomName
 
 		case isLink(line):
 			err := p.parseConnection(line)
@@ -132,6 +134,10 @@ func (p *Parser) parseConnection(line string) error {
 	parts := strings.Split(line, "-")
 	if len(parts) != 2 {
 		return fmt.Errorf("invalid connection format: %s", line)
+	}
+
+	if parts[0] == parts[1] {
+		return fmt.Errorf("invalid connection: %s-%s (self loop)", parts[0], parts[1])
 	}
 
 	return p.colony.ConnectRooms(parts[0], parts[1])
