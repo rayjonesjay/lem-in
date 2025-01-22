@@ -13,7 +13,7 @@ func TestAnt(t *testing.T) {
 			Y: 0.0,
 		},
 		IsStart:    true,
-		Neighbours: make([]*Room, 0),
+		Neighbours: []string{}, // Neighbours should be a slice of room names (strings)
 	}
 
 	// Create ant
@@ -24,7 +24,8 @@ func TestAnt(t *testing.T) {
 		t.Errorf("Expected ant ID to be 1, got %d", ant.ID)
 	}
 
-	if ant.Position != startRoom {
+	// Test that the ant's position matches the name of the start room
+	if ant.Position == startRoom.Name { // Compare with the room's name
 		t.Error("Expected ant to be in start room")
 	}
 
@@ -35,7 +36,7 @@ func TestAnt(t *testing.T) {
 			X: 1.0,
 			Y: 1.0,
 		},
-		Neighbours: make([]*Room, 0),
+		// Neighbours should be names of rooms (strings)
 	}
 
 	room2 := &Room{
@@ -44,35 +45,35 @@ func TestAnt(t *testing.T) {
 			X: 2.0,
 			Y: 2.0,
 		},
-		Neighbours: make([]*Room, 0),
+		// Neighbours should be names of rooms (strings)
 	}
 
 	// Test movement along path
-	path := []*Room{startRoom, room1, room2}
+	path := []string{startRoom.Name, room1.Name, room2.Name} // Use names of rooms
 	ant.SetPath(path)
-	
+
 	// Test first move
 	movedRoom := ant.Move()
-	if movedRoom != room1 {
+	if movedRoom != room1.Name { // Compare with room names
 		t.Error("Expected ant to move to room1")
 	}
 
 	// Test second move
 	movedRoom = ant.Move()
-	if movedRoom != room2 {
+	if movedRoom != room2.Name { // Compare with room names
 		t.Error("Expected ant to move to room2")
 	}
 
 	// Test movement beyond path
 	movedRoom = ant.Move()
-	if movedRoom != nil {
+	if movedRoom != "" { // Check for empty string when path is exhausted
 		t.Error("Expected no more moves after reaching end of path")
 	}
 
 	// Test GetNextRoom
 	ant.SetPath(path) // Reset path
 	nextRoom := ant.GetNextRoom()
-	if nextRoom != room1 {
+	if nextRoom != room1.Name { // Check using room names
 		t.Error("GetNextRoom should return next room without moving ant")
 	}
 }

@@ -9,8 +9,8 @@ import (
 // InitializeAnts initializes all ants with optimized path distribution
 func InitializeAnts(c *models.Colony) (*models.Colony, int) {
 	// Get optimized paths from PathFinder
-	var bestPaths [][]string
-	var bestAntsPerPath []int
+	var bestPaths = [][]string{}
+	var bestAntsPerPath = []int{}
 	var leastTurn = 0
 	optimizedPaths1, optimizedPaths2, err := PathFinder(*c)
 
